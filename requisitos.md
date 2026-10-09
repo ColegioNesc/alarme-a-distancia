@@ -14,7 +14,16 @@
 - Trate sempre as mensagens nativas "es,caixas de mensagens com OK" sempre em um modal.
 
   ### Regras de Negócio CORE
-  Senhas devem ser armazenadas com hash seguro (password_hash).
+  Senhas devem ser armazenadas com hash seguro (password_hash)
+| ID | Descrição | Requisito / Condição |
+| :---: | :--- | :--- |
+| **RN-01** | **Endereço de Destino** | O usuário deve informar um endereço de destino válido para iniciar o monitoramento. |
+| **RN-02** | **Rastreamento em Tempo Real** | O aplicativo deve utilizar o GPS do dispositivo para acompanhar a localização do usuário em tempo real. |
+| **RN-03** | **Raio do Alerta** | O usuário deve poder escolher a distância para acionamento do alerta (ex.: 200m ou 500m antes do destino). |
+| **RN-04** | **Notificação e Sinal** | O alarme sonoro e a vibração devem ser ativados assim que o usuário entrar no raio de distância configurado. |
+| **RN-05** | **Controle do Trajeto** | O usuário deve ter a possibilidade de iniciar, pausar e cancelar o monitoramento do trajeto a qualquer momento. |
+| **RN-06** | **Tratamento de GPS Desativado** | Se a localização estiver desativada ou indisponível, o app deve notificar o usuário alertando sobre o impacto no funcionamento. |
+
  # Documento de Especificação de Requisitos - Alarme a Distância
 
 ## 1. Visão Geral do Sistema
@@ -74,4 +83,5 @@ O **Alarme a Distância** é um aplicativo mobile que monitora a localização e
 
 
 #### Objetivos
+Desenvolver um aplicativo chamado **Alarme a Distância**, que permita ao usuário informar seu destino, acompanhar sua localização em tempo real por meio do GPS e definir uma distância para receber o aviso. O sistema deverá calcular a proximidade do destino e ativar um alarme sonoro e vibratório quando o usuário estiver dentro do raio configurado. A interface deve ser simples, intuitiva e funcional, permitindo configurar, iniciar e parar o alarme com facilidade, ajudando a evitar que o usuário perca o ponto de desembarque durante a viagem. 
 

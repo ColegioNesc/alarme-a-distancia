@@ -1,7 +1,6 @@
-- Mudar porque não esta reconhecendo o endereço quando não é clicado no mapa
+- fazer a busca de endereços reais no googlemaps, tentar fazer isso sem usar alguma forma gratuita para isso.
 - Colocar a opção do usuário também conseguir escolher sons sem ser do proprio app e dar mais opções de sons do app
 - Colocar modo escuro e claro
-- Sem o usuário ter que ativar o monitoramento todo o dia
-- Colocar o modo de alarme automatico, iniciando o monitoramento automaticamente, exemplo: alarme normal, pode definir de segunda a domingo e pode desativar quando quiser
+- Sem o usuário ter que ativar o monitoramento todo o dia, Colocando o modo de alarme automatico, iniciando o monitoramento automaticamente, exemplo: alarme normal, pode definir de segunda a domingo e pode desativar quando quiser
 - Pode colocar mais de um destino
 - Fazer o site definir quanto tempo vai demorar pra chegar ao destino

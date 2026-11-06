@@ -81,6 +81,19 @@ require_once __DIR__ . '/includes/header.php';
                                     <option value="vibracao">📳 Apenas Vibração</option>
                                 </select>
                             </div>
+                            <div class="col-12 mt-2">
+                                <label for="som_alarme_padrao" class="form-label small fw-semibold">Toque Sonoro Preferido:</label>
+                                <select class="form-select form-select-sm" id="som_alarme_padrao" onchange="SoundSystem.preview(this.value)">
+                                    <option value="sirene" selected>🚨 Sirene de Emergência</option>
+                                    <option value="beep">⏱️ Bip Digital Rápido</option>
+                                    <option value="despertador">⏰ Despertador Clássico</option>
+                                    <option value="radar">📡 Pulso de Sonar / Radar</option>
+                                    <option value="buzina">📢 Buzina de Trânsito</option>
+                                    <option value="melodia">🎵 Melodia Despertador</option>
+                                    <option value="sino">🔔 Carrilhão de Sino</option>
+                                    <option value="urgente">⚠️ Alarme Nuclear / Urgente</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -111,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const senhaConfirm = document.getElementById('senha_confirm').value;
         const raio_padrao = document.getElementById('raio_padrao').value;
         const tipo_alarme_padrao = document.getElementById('tipo_alarme_padrao').value;
+        const som_alarme = document.getElementById('som_alarme_padrao').value;
 
         if (senha !== senhaConfirm) {
             UI.showToast('As senhas digitadas não coincidem.', 'danger');
@@ -130,7 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     email,
                     senha,
                     raio_padrao,
-                    tipo_alarme_padrao
+                    tipo_alarme_padrao,
+                    som_alarme
                 })
             });
 

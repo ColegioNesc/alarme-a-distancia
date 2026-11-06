@@ -1,0 +1,282 @@
+:root {
+    --primary-color: #0d6efd;
+    --primary-dark: #0a58ca;
+    --danger-alarm: #dc3545;
+    --warning-alarm: #ffc107;
+    --success-color: #198754;
+    --border-radius-app: 16px;
+    --bg-page: #f4f6f9;
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.06);
+    --text-primary: #212529;
+    --text-muted: #6c757d;
+}
+
+[data-bs-theme="dark"] {
+    --bg-page: #0b1120;
+    --card-bg: #1e293b;
+    --card-border: #334155;
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Marca e Ícones */
+.brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+}
+
+/* Card Padrão da Aplicação */
+.card-app {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius-app);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.15s ease;
+}
+
+[data-bs-theme="dark"] .card-app {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+[data-bs-theme="dark"] .card-header {
+    background-color: #1e293b !important;
+    border-bottom-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+/* Painel de Distância */
+.distance-display-box {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-app);
+    padding: 1.25rem;
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+}
+
+.distance-number {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #ffffff;
+    letter-spacing: -1px;
+}
+
+.distance-unit {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #38bdf8;
+    margin-left: 0.25rem;
+}
+
+/* Mapa Leaflet */
+#map {
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    z-index: 1;
+    transition: filter 0.3s ease;
+}
+
+@media (min-width: 768px) {
+    #map {
+        height: 400px;
+    }
+}
+
+/* Efeito de mapa noturno 100% gratuito sobre OpenStreetMap (sem chaves nem cobranças) */
+[data-bs-theme="dark"] .leaflet-container {
+    background-color: #0f172a;
+}
+
+[data-bs-theme="dark"] .leaflet-tile {
+    filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(90%);
+}
+
+[data-bs-theme="dark"] .leaflet-bar a {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border-bottom: 1px solid #334155;
+}
+
+[data-bs-theme="dark"] .leaflet-bar a:hover {
+    background-color: #334155;
+    color: #38bdf8;
+}
+
+[data-bs-theme="dark"] .leaflet-control-attribution {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    color: #94a3b8 !important;
+}
+
+[data-bs-theme="dark"] .leaflet-control-attribution a {
+    color: #38bdf8 !important;
+}
+
+[data-bs-theme="dark"] .leaflet-popup-content-wrapper,
+[data-bs-theme="dark"] .leaflet-popup-tip {
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #334155;
+}
+
+/* Badge de Status */
+.status-badge-tracker {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    background: #e9ecef;
+    display: inline-flex;
+    align-items: center;
+}
+
+[data-bs-theme="dark"] .status-badge-tracker {
+    background: #334155;
+    color: #cbd5e1;
+}
+
+.status-badge-tracker.ativo {
+    background: #d1e7dd;
+    color: #0f5132;
+    animation: pulseBadge 2s infinite;
+}
+
+[data-bs-theme="dark"] .status-badge-tracker.ativo {
+    background: #064e3b;
+    color: #a7f3d0;
+}
+
+.status-badge-tracker.pausado {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+@keyframes pulseBadge {
+    0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(25, 135, 84, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+}
+
+/* Botões de Ação Mobile */
+.btn-action-mobile {
+    padding: 0.85rem 1.25rem;
+    font-weight: 700;
+    border-radius: 50px;
+    letter-spacing: 0.5px;
+}
+
+/* Sugestões de Autocomplete (Nominatim, Photon, Google Places) */
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+    z-index: 1060;
+    max-height: 270px;
+    overflow-y: auto;
+    margin-top: 4px;
+}
+
+.suggestion-item {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--card-border);
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    transition: background 0.15s ease;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover, .suggestion-item:active {
+    background: rgba(13, 110, 253, 0.1);
+    color: var(--primary-color);
+}
+
+/* Overlay de Alarme em Tela Cheia (Urgência RF08, RF09) */
+.alarm-fullscreen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, #dc3545 0%, #721c24 100%);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: flashScreen 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes flashScreen {
+    0% { background: radial-gradient(circle, #dc3545 0%, #721c24 100%); }
+    100% { background: radial-gradient(circle, #ff4d5e 0%, #900c1e 100%); }
+}
+
+.alarm-pulsing-box {
+    max-width: 480px;
+    width: 90%;
+}
+
+.alarm-bell-icon {
+    font-size: 5rem;
+    animation: shakeBell 0.5s infinite ease-in-out;
+}
+
+@keyframes shakeBell {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(18deg); }
+    75% { transform: rotate(-18deg); }
+}
+
+.fw-black {
+    font-weight: 900;
+}
+
+/* Google Places Pac Container Styling */
+.pac-container {
+    z-index: 1070 !important;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: 4px;
+}
+
+[data-bs-theme="dark"] .pac-container {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+[data-bs-theme="dark"] .pac-item {
+    border-top-color: #334155;
+    color: #cbd5e1;
+}
+
+[data-bs-theme="dark"] .pac-item:hover {
+    background-color: #334155;
+}
+
+[data-bs-theme="dark"] .pac-item-query {
+    color: #38bdf8;
+}

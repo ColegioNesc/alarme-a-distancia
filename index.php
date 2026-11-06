@@ -56,7 +56,10 @@ require_once __DIR__ . '/includes/header.php';
         </label>
         <div class="input-group">
             <input type="text" id="destinationInput" class="form-control form-control-lg fs-6" 
-                   placeholder="Digite um endereço, ponto de referência ou clique no mapa..." autocomplete="off">
+                   placeholder="Digite um endereço ou ponto de descida..." autocomplete="off">
+            <button class="btn btn-primary px-3 fw-bold" type="button" id="btnSearchDestination" title="Buscar e Marcar no Mapa">
+                <i class="bi bi-search me-1"></i> Buscar
+            </button>
             <button class="btn btn-outline-secondary" type="button" id="btnCenterUser" title="Centralizar na Minha Localização">
                 <i class="bi bi-crosshair"></i>
             </button>
@@ -147,12 +150,32 @@ require_once __DIR__ . '/includes/header.php';
             </div>
             <!-- Som do Alarme -->
             <div class="col-sm-6">
-                <label for="soundSelect" class="form-label fw-bold small">Toque Sonoro:</label>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="soundSelect" class="form-label fw-bold small mb-0">Toque Sonoro:</label>
+                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 small" id="btnPreviewSound">
+                        <i class="bi bi-play-fill"></i> Ouvir
+                    </button>
+                </div>
                 <select id="soundSelect" class="form-select form-select-sm">
-                    <option value="sirene" <?= $somAlarmePadrao === 'sirene' ? 'selected' : '' ?>>🚨 Sirene de Alerta</option>
-                    <option value="beep" <?= $somAlarmePadrao === 'beep' ? 'selected' : '' ?>>⏱️ Bip Contínuo Rápido</option>
-                    <option value="toque" <?= $somAlarmePadrao === 'toque' ? 'selected' : '' ?>>🎵 Melodia Despertador</option>
+                    <option value="sirene" <?= $somAlarmePadrao === 'sirene' ? 'selected' : '' ?>>🚨 Sirene de Emergência</option>
+                    <option value="beep" <?= $somAlarmePadrao === 'beep' ? 'selected' : '' ?>>⏱️ Bip Digital Rápido</option>
+                    <option value="despertador" <?= $somAlarmePadrao === 'despertador' ? 'selected' : '' ?>>⏰ Despertador Clássico</option>
+                    <option value="radar" <?= $somAlarmePadrao === 'radar' ? 'selected' : '' ?>>📡 Pulso de Sonar / Radar</option>
+                    <option value="buzina" <?= $somAlarmePadrao === 'buzina' ? 'selected' : '' ?>>📢 Buzina de Trânsito</option>
+                    <option value="melodia" <?= $somAlarmePadrao === 'melodia' ? 'selected' : '' ?>>🎵 Melodia Despertador</option>
+                    <option value="sino" <?= $somAlarmePadrao === 'sino' ? 'selected' : '' ?>>🔔 Carrilhão de Sino</option>
+                    <option value="urgente" <?= $somAlarmePadrao === 'urgente' ? 'selected' : '' ?>>⚠️ Alarme Nuclear / Urgente</option>
+                    <option value="custom" <?= $somAlarmePadrao === 'custom' ? 'selected' : '' ?>>📁 Áudio do Celular/PC (Personalizado)</option>
                 </select>
+
+                <!-- Box para carregar arquivo de som do usuário -->
+                <div id="customSoundBox" class="mt-2 p-2 rounded border bg-light-subtle d-none">
+                    <label for="customAudioFile" class="form-label small fw-bold mb-1">
+                        <i class="bi bi-upload me-1"></i> Escolher áudio (MP3, WAV, OGG):
+                    </label>
+                    <input type="file" id="customAudioFile" class="form-control form-control-sm" accept="audio/*">
+                    <div id="customAudioFeedback" class="form-text small text-success mt-1"></div>
+                </div>
             </div>
         </div>
     </div>

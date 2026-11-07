@@ -37,10 +37,29 @@ if (isLoggedIn() && $pdo) {
 require_once __DIR__ . '/includes/header.php';
 ?>
 
+<!-- Banner de Instalação do PWA (aparece de forma nativa e não intrusiva) -->
+<div id="pwaInstallBanner" class="pwa-install-banner d-none d-flex align-items-center justify-content-between gap-2">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-phone-fill fs-3 me-2"></i>
+        <div>
+            <strong class="d-block">Instale o App no seu Celular</strong>
+            <small class="opacity-75">Acesse em tela cheia e receba alarmes sem precisar do navegador</small>
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-1">
+        <button type="button" class="btn btn-sm btn-install shadow-sm" onclick="triggerPwaInstall()">
+            Instalar
+        </button>
+        <button type="button" class="btn btn-sm text-white border-0 opacity-75" onclick="document.getElementById('pwaInstallBanner').classList.add('d-none')" title="Dispensar">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+</div>
+
 <!-- Header do Monitor com Status -->
 <div class="d-flex align-items-center justify-content-between mb-3">
     <div>
-        <h4 class="fw-bold mb-0 text-dark">Monitor de Trajeto</h4>
+        <h4 class="fw-bold mb-0 text-body">Monitor de Trajeto</h4>
         <small class="text-muted">Acompanhe seu deslocamento em tempo real</small>
     </div>
     <div id="statusBadge" class="status-badge-tracker inativo">
@@ -49,23 +68,25 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <!-- Barra de Busca de Destino (RN-01, RF02) -->
-<div class="card card-app mb-3 position-relative">
+<div class="card card-app mb-3 position-relative" style="z-index: 1050;">
     <div class="card-body p-3">
         <label for="destinationInput" class="form-label fw-bold text-secondary mb-1">
             <i class="bi bi-search me-1 text-primary"></i> 1. Onde você vai descer? (Destino)
         </label>
-        <div class="input-group">
-            <input type="text" id="destinationInput" class="form-control form-control-lg fs-6" 
-                   placeholder="Digite um endereço ou ponto de descida..." autocomplete="off">
-            <button class="btn btn-primary px-3 fw-bold" type="button" id="btnSearchDestination" title="Buscar e Marcar no Mapa">
-                <i class="bi bi-search me-1"></i> Buscar
-            </button>
-            <button class="btn btn-outline-secondary" type="button" id="btnCenterUser" title="Centralizar na Minha Localização">
-                <i class="bi bi-crosshair"></i>
-            </button>
+        <div class="position-relative">
+            <div class="input-group">
+                <input type="text" id="destinationInput" class="form-control form-control-lg fs-6" 
+                       placeholder="Digite um endereço ou ponto de descida..." autocomplete="off">
+                <button class="btn btn-primary px-3 fw-bold" type="button" id="btnSearchDestination" title="Buscar e Marcar no Mapa">
+                    <i class="bi bi-search me-1"></i> <span class="btn-search-label">Buscar</span>
+                </button>
+                <button class="btn btn-outline-secondary" type="button" id="btnCenterUser" title="Centralizar na Minha Localização">
+                    <i class="bi bi-crosshair"></i>
+                </button>
+            </div>
+            <!-- Caixa de Autocomplete -->
+            <div id="searchSuggestions" class="autocomplete-suggestions d-none"></div>
         </div>
-        <!-- Caixa de Autocomplete -->
-        <div id="searchSuggestions" class="autocomplete-suggestions d-none"></div>
 
         <!-- Atalhos de Favoritos (se houver) -->
         <?php if (!empty($favoritos)): ?>
@@ -129,11 +150,11 @@ require_once __DIR__ . '/includes/header.php';
             <input type="range" class="form-range" min="100" max="2500" step="50" id="radiusInput" value="<?= $raioPadrao ?>"
                    oninput="document.getElementById('radiusLabel').textContent = this.value + ' metros';">
             
-            <div class="d-flex gap-2 mt-1">
-                <button type="button" class="btn btn-sm btn-outline-secondary btn-quick-radius" data-radius="200" onclick="document.getElementById('radiusLabel').textContent = '200 metros';">200m</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary btn-quick-radius" data-radius="300" onclick="document.getElementById('radiusLabel').textContent = '300 metros';">300m</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary btn-quick-radius" data-radius="500" onclick="document.getElementById('radiusLabel').textContent = '500 metros';">500m</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary btn-quick-radius" data-radius="1000" onclick="document.getElementById('radiusLabel').textContent = '1000 metros';">1 km</button>
+            <div class="d-flex flex-wrap gap-2 mt-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-quick-radius flex-fill" data-radius="200" onclick="document.getElementById('radiusLabel').textContent = '200 metros';">200m</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-quick-radius flex-fill" data-radius="300" onclick="document.getElementById('radiusLabel').textContent = '300 metros';">300m</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-quick-radius flex-fill" data-radius="500" onclick="document.getElementById('radiusLabel').textContent = '500 metros';">500m</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-quick-radius flex-fill" data-radius="1000" onclick="document.getElementById('radiusLabel').textContent = '1000 metros';">1 km</button>
             </div>
             <div class="form-text small">O alarme tocará e vibrará assim que você estiver dentro dessa distância.</div>
         </div>

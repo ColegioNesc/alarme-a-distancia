@@ -97,52 +97,177 @@ const UI = {
     },
 
     /**
+     * Garante a existência do elemento Modal Genérico no DOM
+     */
+    getOrCreateModalElement() {
+        let modalEl = document.getElementById('appGenericModal');
+        if (!modalEl) {
+            modalEl = document.createElement('div');
+            modalEl.className = 'modal fade';
+            modalEl.id = 'appGenericModal';
+            modalEl.tabIndex = -1;
+            modalEl.setAttribute('aria-hidden', 'true');
+            modalEl.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content shadow border-0" style="border-radius: 16px;">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-bold" id="appGenericModalTitle">Aviso</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body py-3" id="appGenericModalBody"></div>
+                        <div class="modal-footer border-0 pt-0" id="appGenericModalFooter">
+                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalEl);
+        }
+        return modalEl;
+    },
+
+    /**
      * Exibe Modal no padrão do sistema com callback de confirmação
-     * Substitui o window.confirm() nativo
+     * 100% no padrão visual da aplicação (NUNCA usa confirm nativo do navegador)
      */
     confirmAction(title, message, onConfirm) {
-        const modalEl = document.getElementById('appGenericModal');
-        if (!modalEl) return;
+        const modalEl = this.getOrCreateModalElement();
+        const titleEl = document.getElementById('appGenericModalTitle');
+        const bodyEl = document.getElementById('appGenericModalBody');
+        const footerEl = document.getElementById('appGenericModalFooter');
 
-        document.getElementById('appGenericModalTitle').textContent = title;
-        document.getElementById('appGenericModalBody').innerHTML = `<p class="mb-0 text-secondary">${message}</p>`;
+        if (titleEl) titleEl.textContent = title;
+        if (bodyEl) bodyEl.innerHTML = `<p class="mb-0 text-secondary">${message}</p>`;
 
-        const footer = document.getElementById('appGenericModalFooter');
-        footer.innerHTML = `
-            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-sm btn-danger rounded-pill px-4" id="btnModalConfirmAction">Confirmar</button>
-        `;
+        if (footerEl) {
+            footerEl.innerHTML = `
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="btnModalCancelAction" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-sm btn-danger rounded-pill px-4" id="btnModalConfirmAction">Confirmar</button>
+            `;
+        }
 
-        const bsModal = new bootstrap.Modal(modalEl);
-        bsModal.show();
+        const closeModal = () => {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    bsModal.hide();
+                } catch (e) {}
+            }
+            modalEl.classList.remove('show');
+            modalEl.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            const backdrop = document.getElementById('appManualModalBackdrop');
+            if (backdrop) backdrop.remove();
+        };
 
-        const btnConfirm = document.getElementById('btnModalConfirmAction');
-        btnConfirm.onclick = () => {
-            bsModal.hide();
-            if (typeof onConfirm === 'function') {
-                onConfirm();
+        const showModal = () => {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    bsModal.show();
+                    return;
+                } catch (e) {
+                    console.warn('Bootstrap modal init fallback to pure DOM display:', e);
+                }
+            }
+            // Fallback puramente visual no DOM (garante modal visual mesmo sem JS do Bootstrap)
+            modalEl.classList.add('show');
+            modalEl.style.display = 'block';
+            modalEl.style.zIndex = '1060';
+            document.body.classList.add('modal-open');
+            let backdrop = document.getElementById('appManualModalBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'appManualModalBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                backdrop.style.zIndex = '1050';
+                document.body.appendChild(backdrop);
             }
         };
+
+        const btnConfirm = document.getElementById('btnModalConfirmAction');
+        if (btnConfirm) {
+            btnConfirm.onclick = () => {
+                closeModal();
+                if (typeof onConfirm === 'function') {
+                    onConfirm();
+                }
+            };
+        }
+
+        const btnCancel = document.getElementById('btnModalCancelAction');
+        if (btnCancel) {
+            btnCancel.onclick = () => {
+                closeModal();
+            };
+        }
+
+        showModal();
     },
 
     /**
      * Exibe Modal de Alerta
-     * Substitui o window.alert() nativo
+     * 100% no padrão visual da aplicação (NUNCA usa alert nativo do navegador)
      */
     showAlert(title, message) {
-        const modalEl = document.getElementById('appGenericModal');
-        if (!modalEl) return;
+        const modalEl = this.getOrCreateModalElement();
+        const titleEl = document.getElementById('appGenericModalTitle');
+        const bodyEl = document.getElementById('appGenericModalBody');
+        const footerEl = document.getElementById('appGenericModalFooter');
 
-        document.getElementById('appGenericModalTitle').textContent = title;
-        document.getElementById('appGenericModalBody').innerHTML = `<p class="mb-0 text-secondary">${message}</p>`;
+        if (titleEl) titleEl.textContent = title;
+        if (bodyEl) bodyEl.innerHTML = `<p class="mb-0 text-secondary">${message}</p>`;
 
-        const footer = document.getElementById('appGenericModalFooter');
-        footer.innerHTML = `
-            <button type="button" class="btn btn-sm btn-primary rounded-pill px-4" data-bs-dismiss="modal">OK</button>
-        `;
+        if (footerEl) {
+            footerEl.innerHTML = `
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-4" id="btnModalOkAlert" data-bs-dismiss="modal">OK</button>
+            `;
+        }
 
-        const bsModal = new bootstrap.Modal(modalEl);
-        bsModal.show();
+        const closeModal = () => {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    bsModal.hide();
+                } catch (e) {}
+            }
+            modalEl.classList.remove('show');
+            modalEl.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            const backdrop = document.getElementById('appManualModalBackdrop');
+            if (backdrop) backdrop.remove();
+        };
+
+        const showModal = () => {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    bsModal.show();
+                    return;
+                } catch (e) {}
+            }
+            modalEl.classList.add('show');
+            modalEl.style.display = 'block';
+            modalEl.style.zIndex = '1060';
+            document.body.classList.add('modal-open');
+            let backdrop = document.getElementById('appManualModalBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'appManualModalBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                backdrop.style.zIndex = '1050';
+                document.body.appendChild(backdrop);
+            }
+        };
+
+        const btnOk = document.getElementById('btnModalOkAlert');
+        if (btnOk) {
+            btnOk.onclick = () => {
+                closeModal();
+            };
+        }
+
+        showModal();
     }
 };
 

@@ -3,6 +3,9 @@
  * Cabeçalho Comum (Header)
  * Suporte a Tema Claro / Noturno (100% Gratuito sem chaves ou APIs pagas)
  */
+require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/auth.php';
+
 $title = $pageTitle ?? 'Alarme a Distância - Seu Alerta de Ponto de Descida';
 $isLogged = isLoggedIn();
 ?>
@@ -25,14 +28,29 @@ $isLogged = isLoggedIn();
         })();
     </script>
 
+    <!-- PWA e Metatags Mobile First -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Alarme">
+    <meta name="application-name" content="Alarme">
+    
+    <!-- Ícones PWA e Favicons -->
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/icon-512.png">
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- Leaflet CSS -->
+    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=1.7">
 </head>
 <body>
 
@@ -47,7 +65,7 @@ $isLogged = isLoggedIn();
         </a>
 
         <!-- Botão Alternador de Modo Noturno / Claro (Sempre visível no topo mobile) -->
-        <div class="d-flex align-items-center ms-auto me-2 me-lg-0 order-lg-2">
+        <div class="d-flex align-items-center ms-auto me-2 me-lg-0 ms-lg-2 order-lg-2">
             <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 d-flex align-items-center" id="themeToggleBtn" title="Alternar Modo Claro / Noturno">
                 <i class="bi bi-moon-stars-fill me-1" id="themeIcon"></i>
                 <span id="themeLabel" class="small d-none d-sm-inline">Tema</span>
@@ -79,10 +97,10 @@ $isLogged = isLoggedIn();
                 <?php endif; ?>
             </ul>
 
-            <div class="d-flex align-items-center gap-2 pt-2 pt-lg-0 border-top border-lg-0 border-light-subtle">
+            <div class="nav-user-actions d-flex align-items-center gap-2">
                 <?php if ($isLogged): ?>
-                    <span class="text-white-50 small me-2 d-none d-lg-inline">
-                        <i class="bi bi-person-circle me-1"></i> Olá, <?= escape($_SESSION['user_nome'] ?? 'Usuário') ?>
+                    <span class="text-white small me-2 d-none d-lg-inline-flex align-items-center">
+                        <i class="bi bi-person-circle me-1 opacity-75"></i> Olá, <strong class="ms-1"><?= escape($_SESSION['user_nome'] ?? 'Usuário') ?></strong>
                     </span>
                     <a href="logout.php" class="btn btn-sm btn-outline-light rounded-pill px-3">
                         <i class="bi bi-box-arrow-right me-1"></i> Sair

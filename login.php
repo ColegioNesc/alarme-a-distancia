@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/auth.php';
 
 if (isLoggedIn()) {
@@ -23,7 +24,7 @@ require_once __DIR__ . '/includes/header.php';
                     <span class="brand-icon mx-auto mb-2" style="width: 48px; height: 48px; font-size: 1.5rem;">
                         <i class="bi bi-box-arrow-in-right"></i>
                     </span>
-                    <h4 class="fw-bold text-dark">Acessar Conta</h4>
+                    <h4 class="fw-bold text-body">Acessar Conta</h4>
                     <p class="text-muted small">Entre para sincronizar seus destinos favoritos e histórico</p>
                 </div>
 

@@ -44,9 +44,59 @@
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <!-- Scripts Modulares da Aplicação -->
-<script src="assets/js/ui.js"></script>
-<script src="assets/js/audio.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/ui.js?v=2.0"></script>
+<script src="assets/js/audio.js?v=2.0"></script>
+<script src="assets/js/app.js?v=2.0"></script>
+
+<!-- Registro do PWA Service Worker e Instalação -->
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => {
+                console.log('PWA Service Worker Ativo no escopo:', reg.scope);
+            })
+            .catch(err => {
+                console.warn('Falha no Service Worker:', err);
+            });
+    });
+}
+
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const banner = document.getElementById('pwaInstallBanner');
+    if (banner) {
+        banner.classList.remove('d-none');
+    }
+});
+
+function triggerPwaInstall() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                if (window.UI) UI.showToast('Aplicativo instalado com sucesso!', 'success');
+            }
+            deferredPrompt = null;
+            const banner = document.getElementById('pwaInstallBanner');
+            if (banner) banner.classList.add('d-none');
+        });
+    } else {
+        if (window.UI) {
+            UI.showAlert('Como Instalar o App', 'No seu navegador, abra o menu de opções (três pontinhos ou botão de compartilhamento no iPhone) e selecione <b>"Adicionar à Tela Inicial"</b> ou <b>"Instalar Aplicativo"</b>.');
+        }
+    }
+}
+
+window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    const banner = document.getElementById('pwaInstallBanner');
+    if (banner) banner.classList.add('d-none');
+    if (window.UI) UI.showToast('Aplicativo instalado!', 'success');
+});
+</script>
 
 </body>
 </html>

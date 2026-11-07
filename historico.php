@@ -1,6 +1,7 @@
 <?php
 /**
  * Página de Histórico de Viagens e Trajetos
+ * Tradução Automática de Coordenadas para Nomes de Ruas
  */
 
 require_once __DIR__ . '/config/db.php';
@@ -26,7 +27,7 @@ if (isLoggedIn() && $pdo) {
 
 <div class="d-flex align-items-center justify-content-between mb-3">
     <div>
-        <h4 class="fw-bold mb-0 text-dark">Histórico de Trajetos</h4>
+        <h4 class="fw-bold mb-0 text-body">Histórico de Trajetos</h4>
         <small class="text-muted">Veja suas viagens monitoradas anteriores</small>
     </div>
     <a href="index.php" class="btn btn-sm btn-primary rounded-pill px-3">
@@ -56,8 +57,16 @@ if (isLoggedIn() && $pdo) {
 <?php else: ?>
     <div class="row g-3">
         <?php foreach ($viagens as $viagem): ?>
-            <div class="col-12 col-md-6">
-                <div class="card card-app h-100 p-3">
+            <?php
+                $nomeDestino = trim($viagem['destino_nome'] ?? '');
+                $isCoordenadas = empty($nomeDestino) 
+                    || preg_match('/Ponto.*-?\d+\.\d+/i', $nomeDestino) 
+                    || preg_match('/^-?\d+\.\d+\s*,\s*-?\d+\.\d+$/', $nomeDestino)
+                    || $nomeDestino === 'Destino Marcado'
+                    || $nomeDestino === 'Localizando endereço...';
+            ?>
+            <div class="col-12 col-md-6" id="card-viagem-<?= $viagem['id'] ?>">
+                <div class="card card-app h-100 p-3 shadow-sm">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="badge <?= $viagem['status'] === 'concluido' ? 'bg-success' : ($viagem['status'] === 'cancelado' ? 'bg-secondary' : 'bg-warning text-dark') ?> rounded-pill">
                             <?= ucfirst($viagem['status']) ?>
@@ -68,8 +77,14 @@ if (isLoggedIn() && $pdo) {
                         </small>
                     </div>
 
-                    <h6 class="fw-bold text-dark text-truncate mb-2" title="<?= escape($viagem['destino_nome']) ?>">
-                        <i class="bi bi-pin-map-fill text-danger me-1"></i> <?= escape($viagem['destino_nome']) ?>
+                    <h6 class="fw-bold text-body text-truncate mb-2 trip-title" 
+                        data-trip-id="<?= $viagem['id'] ?>"
+                        data-lat="<?= $viagem['destino_lat'] ?>"
+                        data-lng="<?= $viagem['destino_lng'] ?>"
+                        data-is-coords="<?= $isCoordenadas ? '1' : '0' ?>"
+                        title="<?= escape($viagem['destino_nome']) ?>">
+                        <i class="bi bi-pin-map-fill text-danger me-1"></i>
+                        <span class="trip-dest-name"><?= escape($viagem['destino_nome']) ?></span>
                     </h6>
 
                     <div class="small text-secondary mb-3">
@@ -82,8 +97,12 @@ if (isLoggedIn() && $pdo) {
                     </div>
 
                     <div class="mt-auto pt-2 border-top">
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100"
-                                onclick="repetirTrajeto(<?= $viagem['destino_lat'] ?>, <?= $viagem['destino_lng'] ?>, '<?= addslashes(escape($viagem['destino_nome'])) ?>', <?= $viagem['raio_metros'] ?>)">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 btn-repetir-trajeto"
+                                data-lat="<?= $viagem['destino_lat'] ?>"
+                                data-lng="<?= $viagem['destino_lng'] ?>"
+                                data-nome="<?= escape($viagem['destino_nome']) ?>"
+                                data-raio="<?= $viagem['raio_metros'] ?>"
+                                onclick="repetirTrajetoBtn(this)">
                             <i class="bi bi-arrow-repeat me-1"></i> Repetir Este Trajeto
                         </button>
                     </div>
@@ -94,13 +113,64 @@ if (isLoggedIn() && $pdo) {
 <?php endif; ?>
 
 <script>
-function repetirTrajeto(lat, lng, nome, raio) {
+function repetirTrajetoBtn(btn) {
+    const lat = btn.getAttribute('data-lat');
+    const lng = btn.getAttribute('data-lng');
+    const nome = btn.getAttribute('data-nome');
+    const raio = btn.getAttribute('data-raio');
     sessionStorage.setItem('prefill_lat', lat);
     sessionStorage.setItem('prefill_lng', lng);
     sessionStorage.setItem('prefill_nome', nome);
     sessionStorage.setItem('prefill_raio', raio);
     window.location.href = 'index.php';
 }
+
+// Tradução assíncrona automática para nomes de ruas de viagens salvas com coordenadas
+document.addEventListener('DOMContentLoaded', () => {
+    const coordItems = document.querySelectorAll('.trip-title[data-is-coords="1"]');
+    if (coordItems.length === 0) return;
+
+    coordItems.forEach((el, index) => {
+        const tripId = el.getAttribute('data-trip-id');
+        const lat = parseFloat(el.getAttribute('data-lat'));
+        const lng = parseFloat(el.getAttribute('data-lng'));
+        const nameSpan = el.querySelector('.trip-dest-name');
+        const card = el.closest('.card-app');
+        const repeatBtn = card ? card.querySelector('.btn-repetir-trajeto') : null;
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+            // Escalonamento suave para evitar requisições cURL simultâneas
+            setTimeout(async () => {
+                try {
+                    const resp = await fetch(`api/geocode.php?lat=${lat}&lng=${lng}`);
+                    const data = await resp.json();
+                    if (data?.display_name) {
+                        const streetName = data.display_name;
+                        if (nameSpan) {
+                            nameSpan.textContent = streetName;
+                            el.setAttribute('title', streetName);
+                        }
+                        if (repeatBtn) {
+                            repeatBtn.setAttribute('data-nome', streetName);
+                        }
+                        // Grava no banco de dados para que nas próximas visitas já venha traduzido
+                        fetch('api/trajeto.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'atualizar_nome_destino',
+                                trip_id: tripId,
+                                nome: streetName
+                            })
+                        }).catch(() => {});
+                    }
+                } catch (e) {
+                    console.warn('Erro ao resolver endereço para a viagem #' + tripId, e);
+                }
+            }, index * 180);
+        }
+    });
+});
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

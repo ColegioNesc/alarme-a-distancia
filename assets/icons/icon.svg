@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0d6efd"/>
+      <stop offset="100%" stop-color="#0a46b3"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- Radar Pulse Rings -->
+  <circle cx="256" cy="256" r="195" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="8"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="8"/>
+
+  <!-- Bell Shape -->
+  <g filter="url(#shadow)">
+    <!-- Bell Dome & Body -->
+    <path d="M256,120 C205,120 180,165 175,230 L160,330 C155,345 140,355 125,360 C120,362 120,370 125,370 L387,370 C392,370 392,362 387,360 C372,355 357,345 352,330 L337,230 C332,165 307,120 256,120 Z" fill="#ffffff"/>
+    <!-- Top Ring Handle -->
+    <path d="M256,92 C244,92 236,102 236,114 C244,110 268,110 276,114 C276,102 268,92 256,92 Z" fill="#ffffff"/>
+    <!-- Clapper (Bell Hammer) -->
+    <circle cx="256" cy="385" r="28" fill="#ffc107"/>
+  </g>
+
+  <!-- GPS Pin Badge (Top Right) -->
+  <g filter="url(#shadow)">
+    <circle cx="365" cy="145" r="55" fill="#dc3545"/>
+    <circle cx="365" cy="145" r="38" fill="#ffffff"/>
+    <circle cx="365" cy="145" r="18" fill="#dc3545"/>
+  </g>
+</svg>
+

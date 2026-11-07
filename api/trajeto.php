@@ -73,6 +73,27 @@ switch ($action) {
         }
         break;
 
+    case 'atualizar_nome_destino':
+        $tripId = (int)($data['trip_id'] ?? 0);
+        $novoNome = trim($data['nome'] ?? '');
+        if ($tripId <= 0 || empty($novoNome)) {
+            jsonResponse(['success' => false, 'message' => 'Parâmetros inválidos.'], 400);
+        }
+
+        try {
+            if ($userId) {
+                $stmt = $pdo->prepare("UPDATE viagens SET destino_nome = ? WHERE id = ? AND usuario_id = ?");
+                $stmt->execute([$novoNome, $tripId, $userId]);
+            } else {
+                $stmt = $pdo->prepare("UPDATE viagens SET destino_nome = ? WHERE id = ?");
+                $stmt->execute([$novoNome, $tripId]);
+            }
+            jsonResponse(['success' => true]);
+        } catch (Exception $e) {
+            jsonResponse(['success' => false, 'message' => 'Erro ao atualizar nome do destino'], 500);
+        }
+        break;
+
     default:
         jsonResponse(['success' => false, 'message' => 'Ação não reconhecida.'], 400);
 }

@@ -43,10 +43,11 @@ const App = {
             maxZoom: 19
         }).addTo(this.map);
 
-        // Clique direto no mapa para definir destino (sempre funcional)
+        // Clique direto no mapa para definir destino (com tradução automática para nome da rua)
         this.map.on('click', (e) => {
             const { lat, lng } = e.latlng;
-            this.setDestination(lat, lng, `Ponto no Mapa (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+            this.setDestination(lat, lng, 'Localizando endereço...');
+            this.reverseGeocodeDestination(lat, lng);
         });
     },
 
@@ -156,16 +157,24 @@ const App = {
                 }
             });
 
-            // Autocomplete com debounce
+            // Autocomplete em tempo real com debounce ágil (220ms)
             let debounceTimer = null;
             destInput.addEventListener('input', (e) => {
                 clearTimeout(debounceTimer);
                 const query = e.target.value.trim();
-                if (query.length < 3) {
+                if (query.length < 2) {
                     this.hideSuggestions();
                     return;
                 }
-                debounceTimer = setTimeout(() => this.fetchSuggestions(query), 350);
+                debounceTimer = setTimeout(() => this.fetchSuggestions(query), 220);
+            });
+
+            // Reabre sugestões ao focar se já houver texto digitado
+            destInput.addEventListener('focus', () => {
+                const query = destInput.value.trim();
+                if (query.length >= 2) {
+                    this.fetchSuggestions(query);
+                }
             });
         }
 
@@ -246,39 +255,42 @@ const App = {
         }
 
         try {
-            // 1. Tenta API Geocoder interna (CORS-safe, consulta Photon e Nominatim)
             let foundLocation = null;
 
+            // 1. Tenta consulta direta Photon Komoot (respostas em ~80ms)
             try {
-                const resp = await fetch(`api/geocode.php?q=${encodeURIComponent(query)}`);
-                const results = await resp.json();
-                if (Array.isArray(results) && results.length > 0) {
-                    foundLocation = results[0];
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 1800);
+                const photonResp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=4&lang=pt`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const photonData = await photonResp.json();
+                if (photonData?.features?.length > 0) {
+                    const feat = photonData.features[0];
+                    const coords = feat.geometry.coordinates;
+                    const props = feat.properties;
+                    const label = [props.name, props.street, props.city, props.state].filter(Boolean).join(', ');
+                    foundLocation = {
+                        lat: coords[1],
+                        lng: coords[0],
+                        display_name: label || query
+                    };
                 }
-            } catch (errProxy) {
-                console.warn('Proxy geocode falhou, tentando fallback direto', errProxy);
-            }
+            } catch (ePhoton) {}
 
-            // 2. Se falhar, tenta consulta direta Photon Komoot
+            // 2. Se falhar, tenta API Geocoder interna
             if (!foundLocation) {
                 try {
-                    const photonResp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=3&lang=pt`);
-                    const photonData = await photonResp.json();
-                    if (photonData?.features?.length > 0) {
-                        const feat = photonData.features[0];
-                        const coords = feat.geometry.coordinates;
-                        const props = feat.properties;
-                        const label = [props.name, props.street, props.city, props.state].filter(Boolean).join(', ');
-                        foundLocation = {
-                            lat: coords[1],
-                            lng: coords[0],
-                            display_name: label || query
-                        };
+                    const resp = await fetch(`api/geocode.php?q=${encodeURIComponent(query)}`);
+                    const results = await resp.json();
+                    if (Array.isArray(results) && results.length > 0) {
+                        foundLocation = results[0];
                     }
-                } catch (ePhoton) {}
+                } catch (errProxy) {}
             }
 
-            // 3. Se falhar, tenta consulta direta Nominatim OpenStreetMap
+            // 3. Fallback final direto Nominatim OpenStreetMap
             if (!foundLocation) {
                 try {
                     const nomResp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=3`);
@@ -313,38 +325,97 @@ const App = {
     },
 
     /**
-     * Busca sugestões enquanto o usuário digita
+     * Busca e exibe sugestões em tempo real conforme o usuário digita
      */
     async fetchSuggestions(query) {
         const box = document.getElementById('searchSuggestions');
         if (!box) return;
 
+        // Feedback de carregamento sutil
+        box.innerHTML = `
+            <div class="p-2 text-center text-muted small">
+                <span class="spinner-border spinner-border-sm me-2 text-primary"></span> Buscando endereços...
+            </div>
+        `;
+        box.classList.remove('d-none');
+
+        let items = [];
+
+        // 1. Tenta consulta direta ultra-rápida Photon
         try {
-            // Consulta API Geocode interna
-            const resp = await fetch(`api/geocode.php?q=${encodeURIComponent(query)}`);
-            const data = await resp.json();
-
-            box.innerHTML = '';
-            if (!Array.isArray(data) || data.length === 0) {
-                box.innerHTML = '<div class="suggestion-item text-muted"><i class="bi bi-info-circle me-1"></i> Pressione Buscar ou Enter para localizar</div>';
-                box.classList.remove('d-none');
-                return;
-            }
-
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'suggestion-item';
-                div.innerHTML = `<i class="bi bi-geo-alt-fill me-2 text-danger"></i><strong>${item.display_name}</strong>`;
-                div.onclick = () => {
-                    this.setDestination(parseFloat(item.lat), parseFloat(item.lng), item.display_name);
-                    this.hideSuggestions();
-                };
-                box.appendChild(div);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1400);
+            const photonResp = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=pt`, {
+                signal: controller.signal
             });
-            box.classList.remove('d-none');
-        } catch (err) {
-            console.warn('Erro ao carregar sugestões:', err);
+            clearTimeout(timeoutId);
+            const pData = await photonResp.json();
+            if (pData?.features?.length > 0) {
+                items = pData.features.map(f => {
+                    const p = f.properties;
+                    const c = f.geometry.coordinates;
+                    const title = p.name || p.street || 'Local';
+                    const parts = [p.street, p.housenumber, p.district || p.suburb, p.city, p.state, p.country].filter(Boolean);
+                    const full = Array.from(new Set([title, ...parts])).join(', ');
+                    return {
+                        title: title,
+                        display_name: full || title,
+                        lat: c[1],
+                        lng: c[0]
+                    };
+                });
+            }
+        } catch (e) {}
+
+        // 2. Fallback para proxy PHP interno caso o cliente falhe
+        if (items.length === 0) {
+            try {
+                const resp = await fetch(`api/geocode.php?q=${encodeURIComponent(query)}`);
+                const data = await resp.json();
+                if (Array.isArray(data)) {
+                    items = data;
+                }
+            } catch (errProxy) {}
         }
+
+        // Renderização das sugestões
+        if (items.length === 0) {
+            box.innerHTML = `
+                <div class="p-3 text-center text-muted small">
+                    <i class="bi bi-geo-alt me-1"></i> Nenhuma sugestão encontrada para "<b>${this.escapeHtml(query)}</b>"
+                    <div class="mt-1"><small>Pressione <b>Buscar</b> ou clique direto no mapa.</small></div>
+                </div>
+            `;
+            box.classList.remove('d-none');
+            return;
+        }
+
+        box.innerHTML = '';
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item d-flex align-items-center py-2 px-3 border-bottom';
+            const titleText = item.title || item.display_name.split(',')[0];
+            div.innerHTML = `
+                <i class="bi bi-geo-alt-fill text-danger fs-5 me-2 flex-shrink-0"></i>
+                <div class="flex-grow-1 text-truncate" style="min-width: 0;">
+                    <div class="fw-bold text-body text-truncate">${this.escapeHtml(titleText)}</div>
+                    <small class="text-muted text-truncate d-block">${this.escapeHtml(item.display_name)}</small>
+                </div>
+            `;
+            div.onclick = (e) => {
+                e.stopPropagation();
+                this.setDestination(parseFloat(item.lat), parseFloat(item.lng), item.display_name);
+                this.hideSuggestions();
+            };
+            box.appendChild(div);
+        });
+        box.classList.remove('d-none');
+    },
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
     },
 
     hideSuggestions() {
@@ -374,7 +445,21 @@ const App = {
                 popupAnchor: [1, -34],
                 shadowSize: [41, 41]
             });
-            this.destMarker = L.marker([this.destLat, this.destLng], { icon: destIcon }).addTo(this.map);
+            this.destMarker = L.marker([this.destLat, this.destLng], { 
+                icon: destIcon,
+                draggable: true 
+            }).addTo(this.map);
+
+            // Permite arrastar o pino na tela principal e atualiza o endereço da rua
+            this.destMarker.on('dragend', () => {
+                const pos = this.destMarker.getLatLng();
+                this.destLat = pos.lat;
+                this.destLng = pos.lng;
+                const radius = parseInt(document.getElementById('radiusInput')?.value || 300);
+                this.updateRadiusCircle(radius);
+                this.updateDistanceDisplay();
+                this.reverseGeocodeDestination(pos.lat, pos.lng);
+            });
         }
         this.destMarker.bindPopup(`<b>Ponto de Descida</b><br>${name}`).openPopup();
 
@@ -387,6 +472,48 @@ const App = {
             this.map.fitBounds(bounds, { padding: [50, 50] });
         } else {
             this.map.setView([this.destLat, this.destLng], 15);
+        }
+    },
+
+    /**
+     * Traduz coordenadas (lat, lng) para o nome da rua em tempo real
+     */
+    async reverseGeocodeDestination(lat, lng) {
+        const input = document.getElementById('destinationInput');
+        try {
+            const resp = await fetch(`api/geocode.php?lat=${lat}&lng=${lng}`);
+            const data = await resp.json();
+            if (data?.display_name) {
+                const resolved = data.display_name;
+                this.destName = resolved;
+                if (input) input.value = resolved;
+                if (this.destMarker) {
+                    this.destMarker.setPopupContent(`<b>Ponto de Descida</b><br>${resolved}`);
+                }
+                // Se houver viagem gravada, atualiza com o nome resolvido no banco
+                if (this.activeTripId) {
+                    fetch('api/trajeto.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'atualizar_nome_destino',
+                            trip_id: this.activeTripId,
+                            nome: resolved
+                        })
+                    }).catch(() => {});
+                }
+            } else if (input && input.value === 'Localizando endereço...') {
+                const fallback = `Ponto no Mapa (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                this.destName = fallback;
+                input.value = fallback;
+            }
+        } catch (e) {
+            console.warn('Geocodificação reversa não concluída:', e);
+            if (input && input.value === 'Localizando endereço...') {
+                const fallback = `Ponto no Mapa (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                this.destName = fallback;
+                input.value = fallback;
+            }
         }
     },
 
@@ -593,7 +720,20 @@ const App = {
 
         const overlay = document.getElementById('alarmOverlay');
         const destText = document.getElementById('alarmDestinationText');
-        if (destText) destText.textContent = this.destName || 'Seu Ponto de Descida';
+        if (destText) {
+            destText.textContent = this.destName || 'Seu Ponto de Descida';
+            // Se o nome ainda for genérico de coordenadas, resolve o nome da rua de imediato
+            if (this.destLat && this.destLng && (/Ponto.*-?\d+\.\d+/i.test(this.destName) || this.destName === 'Localizando endereço...')) {
+                fetch(`api/geocode.php?lat=${this.destLat}&lng=${this.destLng}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data?.display_name) {
+                            destText.textContent = data.display_name;
+                            this.destName = data.display_name;
+                        }
+                    }).catch(() => {});
+            }
+        }
         if (overlay) overlay.classList.remove('d-none');
 
         // Atualiza viagem na API

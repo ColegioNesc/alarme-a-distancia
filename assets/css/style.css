@@ -4,12 +4,14 @@
     --danger-alarm: #dc3545;
     --warning-alarm: #ffc107;
     --success-color: #198754;
-    --border-radius-app: 16px;
+    --border-radius-app: 18px;
     --bg-page: #f4f6f9;
     --card-bg: #ffffff;
-    --card-border: rgba(0, 0, 0, 0.06);
-    --text-primary: #212529;
-    --text-muted: #6c757d;
+    --card-border: rgba(0, 0, 0, 0.07);
+    --text-primary: #1e293b;
+    --text-muted: #64748b;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
 }
 
 [data-bs-theme="dark"] {
@@ -18,14 +20,46 @@
     --card-border: #334155;
     --text-primary: #f8fafc;
     --text-muted: #94a3b8;
+    --input-bg: #0f172a;
+    --input-border: #334155;
+}
+
+/* Reset Global e Proteção Mobile contra Scroll Horizontal */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: var(--bg-page);
     color: var(--text-primary);
-    -webkit-tap-highlight-color: transparent;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
     transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Safe Area Inset no Topo da Navbar (Notch de iPhone e Android) */
+.navbar {
+    padding-top: calc(0.6rem + env(safe-area-inset-top, 0px));
+    padding-bottom: 0.6rem;
+}
+
+.navbar-brand {
+    font-size: 1.15rem;
+    letter-spacing: -0.2px;
 }
 
 /* Marca e Ícones */
@@ -37,19 +71,59 @@ body {
     height: 36px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
+    flex-shrink: 0;
 }
 
-/* Card Padrão da Aplicação */
+/* Ações do Usuário e Barra de Navegação */
+.nav-user-actions {
+    border: none !important;
+}
+
+@media (max-width: 991.98px) {
+    .nav-user-actions {
+        border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+        margin-top: 0.5rem;
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.25rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .nav-user-actions {
+        border: none !important;
+        border-top: none !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+}
+
+/* Card Padrão da Aplicação com Ajuste Responsivo */
 .card-app {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: var(--border-radius-app);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.15s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.2s ease;
+    overflow: visible;
 }
 
 [data-bs-theme="dark"] .card-app {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.card-app .card-body {
+    padding: 1.15rem;
+}
+
+@media (min-width: 576px) {
+    .card-app .card-body {
+        padding: 1.5rem;
+    }
+}
+
+.card-header {
+    border-bottom: 1px solid var(--card-border);
+    background-color: var(--card-bg);
 }
 
 [data-bs-theme="dark"] .card-header {
@@ -58,18 +132,18 @@ body {
     color: #f8fafc !important;
 }
 
-/* Painel de Distância */
+/* Painel de Distância Mobile First */
 .distance-display-box {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius-app);
-    padding: 1.25rem;
+    padding: 1.15rem;
     color: #ffffff;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
 }
 
 .distance-number {
-    font-size: 2.75rem;
+    font-size: clamp(2.2rem, 7vw, 2.85rem);
     font-weight: 800;
     line-height: 1;
     color: #ffffff;
@@ -77,25 +151,56 @@ body {
 }
 
 .distance-unit {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 3.5vw, 1.25rem);
     font-weight: 600;
     color: #38bdf8;
-    margin-left: 0.25rem;
+    margin-left: 0.35rem;
 }
 
-/* Mapa Leaflet */
+/* Previne zoom involuntário no iOS Safari mantendo fonte mínima 16px nos inputs */
+.form-control, .form-select {
+    font-size: 16px;
+    border-radius: 12px;
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: #f8fafc;
+}
+
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus {
+    background-color: #0f172a;
+    border-color: var(--primary-color);
+    color: #ffffff;
+}
+
+/* Grupo de Busca de Destino no Mobile */
+.input-group > .form-control {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.input-group > .btn {
+    flex-shrink: 0;
+}
+
+@media (max-width: 400px) {
+    .btn-search-label {
+        display: none;
+    }
+}
+
+/* Mapa Leaflet Responsivo */
 #map {
     width: 100%;
-    height: 300px;
-    border-radius: 12px;
+    min-height: 250px;
+    height: clamp(260px, 42vh, 400px);
+    border-radius: 14px;
     z-index: 1;
-    transition: filter 0.3s ease;
-}
-
-@media (min-width: 768px) {
-    #map {
-        height: 400px;
-    }
+    touch-action: pan-x pan-y;
 }
 
 /* Efeito de mapa noturno 100% gratuito sobre OpenStreetMap (sem chaves nem cobranças) */
@@ -134,14 +239,16 @@ body {
     border: 1px solid #334155;
 }
 
-/* Badge de Status */
+/* Badge de Status do Monitoramento */
 .status-badge-tracker {
     font-size: 0.85rem;
     padding: 0.35rem 0.75rem;
     border-radius: 50px;
-    background: #e9ecef;
+    background: #e2e8f0;
+    color: #334155;
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
 }
 
 [data-bs-theme="dark"] .status-badge-tracker {
@@ -171,15 +278,24 @@ body {
     100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
 }
 
-/* Botões de Ação Mobile */
+/* Botões de Ação Mobile (Tamanho de Toque Adequado) */
 .btn-action-mobile {
+    min-height: 50px;
     padding: 0.85rem 1.25rem;
     font-weight: 700;
     border-radius: 50px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
 
-/* Sugestões de Autocomplete (Nominatim, Photon, Google Places) */
+.btn-action-mobile:active {
+    transform: scale(0.98);
+}
+
+/* Sugestões de Autocomplete */
 .autocomplete-suggestions {
     position: absolute;
     top: 100%;
@@ -187,12 +303,12 @@ body {
     right: 0;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 12px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
-    z-index: 1060;
-    max-height: 270px;
+    border-radius: 14px;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    max-height: 280px;
     overflow-y: auto;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 .suggestion-item {
@@ -213,6 +329,40 @@ body {
     color: var(--primary-color);
 }
 
+/* Marcador / PIN Personalizado Vetorial sem bordas quadradas */
+.fav-custom-pin-wrapper {
+    background: transparent !important;
+    border: none !important;
+}
+
+#favMap {
+    width: 100%;
+    min-height: 220px;
+    height: clamp(220px, 35vh, 280px);
+    border-radius: 14px;
+    touch-action: pan-x pan-y;
+}
+
+/* Card de Instalação PWA */
+.pwa-install-banner {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--border-radius-app);
+    padding: 1rem 1.25rem;
+    box-shadow: 0 6px 18px rgba(13, 110, 253, 0.3);
+    margin-bottom: 1rem;
+}
+
+.pwa-install-banner .btn-install {
+    background: #ffffff;
+    color: var(--primary-dark);
+    font-weight: 700;
+    border-radius: 50px;
+    padding: 0.4rem 1.1rem;
+    white-space: nowrap;
+}
+
 /* Overlay de Alarme em Tela Cheia (Urgência RF08, RF09) */
 .alarm-fullscreen-overlay {
     position: fixed;
@@ -221,10 +371,13 @@ body {
     width: 100vw;
     height: 100vh;
     background: radial-gradient(circle, #dc3545 0%, #721c24 100%);
-    z-index: 99999;
+    z-index: 999999;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 1.5rem;
+    padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
     animation: flashScreen 0.8s infinite alternate ease-in-out;
 }
 
@@ -235,11 +388,11 @@ body {
 
 .alarm-pulsing-box {
     max-width: 480px;
-    width: 90%;
+    width: 100%;
 }
 
 .alarm-bell-icon {
-    font-size: 5rem;
+    font-size: clamp(3.5rem, 12vw, 5rem);
     animation: shakeBell 0.5s infinite ease-in-out;
 }
 
@@ -253,30 +406,22 @@ body {
     font-weight: 900;
 }
 
-/* Google Places Pac Container Styling */
-.pac-container {
-    z-index: 1070 !important;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    margin-top: 4px;
+/* Ajustes de Modais e Toasts no Mobile */
+.modal-dialog {
+    margin: 0.75rem;
 }
 
-[data-bs-theme="dark"] .pac-container {
-    background-color: #1e293b;
-    border-color: #334155;
-    color: #f8fafc;
+@media (min-width: 576px) {
+    .modal-dialog {
+        margin: 1.75rem auto;
+    }
 }
 
-[data-bs-theme="dark"] .pac-item {
-    border-top-color: #334155;
-    color: #cbd5e1;
+.toast-container {
+    max-width: calc(100vw - 1.5rem);
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-[data-bs-theme="dark"] .pac-item:hover {
-    background-color: #334155;
-}
-
-[data-bs-theme="dark"] .pac-item-query {
-    color: #38bdf8;
+.toast {
+    border-radius: 14px;
 }

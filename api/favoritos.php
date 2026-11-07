@@ -29,6 +29,18 @@ switch ($action) {
             jsonResponse(['success' => false, 'message' => 'Preencha título, endereço e coordenadas válidas.'], 400);
         }
 
+        // Previne duplicação acidental (se requisições duplicadas chegarem quase juntas)
+        $stmtCheck = $pdo->prepare("
+            SELECT id FROM destinos_favoritos 
+            WHERE usuario_id = ? AND titulo = ? AND lat = ? AND lng = ?
+            AND criado_em >= (NOW() - INTERVAL 5 SECOND)
+            LIMIT 1
+        ");
+        $stmtCheck->execute([$userId, $titulo, $lat, $lng]);
+        if ($stmtCheck->fetch()) {
+            jsonResponse(['success' => true, 'message' => 'Destino favorito salvo com sucesso!']);
+        }
+
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO destinos_favoritos (usuario_id, titulo, endereco, lat, lng, raio_preferido)
